@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FeedbackFace · ¿Cómo fue tu experiencia?</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0e0e12;
+      --card: #16161e;
+      --border: #2a2a38;
+      --happy: #FFD166;
+      --neutral: #A8DADC;
+      --angry: #EF476F;
+      --text: #f0f0f5;
+      --muted: #7a7a9a;
+      --glow-happy: rgba(255, 209, 102, 0.25);
+      --glow-neutral: rgba(168, 218, 220, 0.25);
+      --glow-angry: rgba(239, 71, 111, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* Background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 560px;
+      padding: 2rem 1.5rem;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 2.8rem;
+    }
+
+    .header .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 1.2rem;
+    }
+
+    .header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 6vw, 3rem);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .header h1 span {
+      background: linear-gradient(90deg, var(--happy), var(--neutral), var(--angry));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header p {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    /* Faces */
+    .faces {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+
+    .face-btn {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 20px;
+      padding: 1.6rem 1rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.7rem;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .face-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      border-radius: 18px;
+    }
+
+    .face-btn.happy::before  { background: radial-gradient(circle at center, var(--glow-happy), transparent 70%); }
+    .face-btn.neutral::before { background: radial-gradient(circle at center, var(--glow-neutral), transparent 70%); }
+    .face-btn.angry::before  { background: radial-gradient(circle at center, var(--glow-angry), transparent 70%); }
+
+    .face-btn:hover, .face-btn.selected {
+      transform: translateY(-6px) scale(1.04);
+    }
+
+    .face-btn:hover::before, .face-btn.selected::before {
+      opacity: 1;
+    }
+
+    .face-btn.happy:hover, .face-btn.happy.selected   { border-color: var(--happy); }
+    .face-btn.neutral:hover, .face-btn.neutral.selected { border-color: var(--neutral); }
+    .face-btn.angry:hover, .face-btn.angry.selected   { border-color: var(--angry); }
+
+    .face-btn.selected {
+      box-shadow: 0 0 30px -5px var(--glow);
+    }
+
+    .face-btn.happy.selected   { --glow: var(--happy); box-shadow: 0 0 30px -5px var(--happy); }
+    .face-btn.neutral.selected { --glow: var(--neutral); box-shadow: 0 0 30px -5px var(--neutral); }
+    .face-btn.angry.selected   { --glow: var(--angry); box-shadow: 0 0 30px -5px var(--angry); }
+
+    .face-btn svg {
+      width: 52px;
+      height: 52px;
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .face-btn:hover svg, .face-btn.selected svg {
+      transform: scale(1.15) rotate(-5deg);
+    }
+
+    .face-btn .label {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .face-btn.happy .label   { color: var(--happy); }
+    .face-btn.neutral .label { color: var(--neutral); }
+    .face-btn.angry .label   { color: var(--angry); }
+
+    /* Comment box */
+    .comment-area {
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
+      opacity: 0;
+    }
+
+    .comment-area.visible {
+      max-height: 160px;
+      opacity: 1;
+    }
+
+    .comment-area textarea {
+      width: 100%;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.2rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.92rem;
+      resize: none;
+      outline: none;
+      transition: border-color 0.3s ease;
+      height: 110px;
+    }
+
+    .comment-area textarea:focus {
+      border-color: var(--neutral);
+    }
+
+    .comment-area textarea::placeholder { color: var(--muted); }
+
+    /* Submit */
+    .submit-btn {
+      width: 100%;
+      padding: 1rem;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(240, 240, 245, 0.15);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .submit-btn.loading::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shimmer 1.2s infinite;
+    }
+
+    @keyframes shimmer { to { left: 100%; } }
+
+    /* Success state */
+    .success-card {
+      display: none;
+      text-align: center;
+      padding: 3rem 2rem;
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    .success-card.show { display: block; }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.85) translateY(20px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .success-card .big-emoji { font-size: 4rem; margin-bottom: 1rem; display: block; }
+    .success-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .success-card p { color: var(--muted); font-size: 0.9rem; }
+
+    .reset-btn {
+      margin-top: 1.5rem;
+      background: transparent;
+      border: 2px solid var(--border);
+      color: var(--muted);
+      padding: 0.6rem 1.5rem;
+      border-radius: 999px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .reset-btn:hover { border-color: var(--text); color: var(--text); }
+
+    /* Config panel */
+    .config-panel {
+      margin-top: 2.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .config-toggle {
+      width: 100%;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      padding: 0.9rem 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: color 0.2s;
+    }
+
+    .config-toggle:hover { color: var(--text); }
+
+    .config-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+
+    .config-body.open { max-height: 400px; }
+
+    .config-inner {
+      padding: 0 1.2rem 1.2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .config-inner label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+
+    .config-inner input {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .config-inner input:focus { border-color: var(--neutral); }
+
+    .save-config-btn {
+      background: var(--border);
+      border: none;
+      color: var(--text);
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      align-self: flex-start;
+      transition: background 0.2s;
+    }
+
+    .save-config-btn:hover { background: #3a3a50; }
+
+    .status-msg {
+      font-size: 0.78rem;
+      color: var(--neutral);
+      margin-top: 0.3rem;
+      min-height: 1em;
+    }
+
+    /* GitHub badge */
+    .github-link {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      justify-content: center;
+      margin-top: 2rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .github-link:hover { color: var(--text); }
+
+    /* Responsive */
+    @media (max-width: 400px) {
+      .faces { gap: 0.6rem; }
+      .face-btn { padding: 1.2rem 0.6rem; }
+      .face-btn svg { width: 42px; height: 42px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- FORM STATE -->
+  <div id="formState">
+    <div class="header">
+      <div class="tag">Feedback Rápido</div>
+      <h1>¿Cómo fue tu<br/><span>experiencia?</span></h1>
+      <p>Tu opinión es importante.<br/>Solo toma 5 segundos.</p>
+    </div>
+
+    <div class="faces">
+      <button class="face-btn happy" data-value="Feliz" onclick="selectFace(this)">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#FFD166" opacity="0.15" stroke="#FFD166" stroke-width="2"/>
+          <circle cx="22" cy="26" r="3.5" fill="#FFD166"/>
+          <circle cx="42" cy="26" r="3.5" fill="#FFD166"/>
+          <path d="M20 38 Q32 50 44 38" stroke="#FFD166" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="label">Feliz</span>
+      </button>
+
+      <button class="face-btn neutral" data-value="Neutral" onclick="selectFace(this)">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#A8DADC" opacity="0.15" stroke="#A8DADC" stroke-width="2"/>
+          <circle cx="22" cy="26" r="3.5" fill="#A8DADC"/>
+          <circle cx="42" cy="26" r="3.5" fill="#A8DADC"/>
+          <line x1="20" y1="42" x2="44" y2="42" stroke="#A8DADC" stroke-width="2.5" stroke-linecap="round"/>
+        </svg>
+        <span class="label">Regular</span>
+      </button>
+
+      <button class="face-btn angry" data-value="Molesto" onclick="selectFace(this)">
+        <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="32" cy="32" r="30" fill="#EF476F" opacity="0.15" stroke="#EF476F" stroke-width="2"/>
+          <circle cx="22" cy="28" r="3.5" fill="#EF476F"/>
+          <circle cx="42" cy="28" r="3.5" fill="#EF476F"/>
+          <path d="M18 20 L26 24 M46 20 L38 24" stroke="#EF476F" stroke-width="2" stroke-linecap="round"/>
+          <path d="M20 46 Q32 36 44 46" stroke="#EF476F" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        </svg>
+        <span class="label">Molesto</span>
+      </button>
+    </div>
+
+    <div class="comment-area" id="commentArea">
+      <textarea id="commentText" placeholder="¿Quieres contarnos algo más? (opcional)"></textarea>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" disabled onclick="submitFeedback()">
+      ENVIAR FEEDBACK
+    </button>
+
+    <p class="status-msg" id="statusMsg"></p>
+  </div>
+
+  <!-- SUCCESS STATE -->
+  <div class="success-card" id="successCard">
+    <span class="big-emoji" id="successEmoji">🎉</span>
+    <h2>¡Gracias por tu feedback!</h2>
+    <p>Tu opinión quedó registrada y nos ayuda a mejorar.</p>
+    <button class="reset-btn" onclick="resetForm()">Enviar otro →</button>
+  </div>
+
+  <!-- CONFIG PANEL -->
+  <div class="config-panel">
+    <button class="config-toggle" onclick="toggleConfig()">
+      <span>⚙️ &nbsp;Configurar Google Sheets</span>
+      <span id="configArrow">▼</span>
+    </button>
+    <div class="config-body" id="configBody">
+      <div class="config-inner">
+        <div>
+          <label>Script URL (Apps Script Web App)</label>
+          <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/..." />
+        </div>
+        <div>
+          <label>Nombre del formulario / contexto (opcional)</label>
+          <input type="text" id="formName" placeholder="Ej: Evento 2025, Producto X..." />
+        </div>
+        <button class="save-config-btn" onclick="saveConfig()">Guardar configuración</button>
+        <p class="status-msg" id="configStatus"></p>
+
+        <details style="margin-top:0.5rem;">
+          <summary style="color:var(--muted);font-size:0.78rem;cursor:pointer;">📋 Cómo configurar Google Sheets</summary>
+          <div style="margin-top:0.8rem;color:var(--muted);font-size:0.78rem;line-height:1.7;">
+            <strong style="color:var(--text);">1.</strong> Abre Google Sheets y crea una hoja con columnas:<br/>
+            &nbsp;&nbsp;<code style="color:var(--neutral);">Fecha | Sentimiento | Comentario | Contexto</code><br/><br/>
+            <strong style="color:var(--text);">2.</strong> En el menú: <em>Extensiones → Apps Script</em><br/><br/>
+            <strong style="color:var(--text);">3.</strong> Pega este código:<br/>
+            <pre style="background:var(--bg);padding:0.7rem;border-radius:8px;overflow:auto;margin-top:0.4rem;color:var(--neutral);font-size:0.72rem;">function doPost(e) {
+  var sheet = SpreadsheetApp
+    .getActiveSpreadsheet()
+    .getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  sheet.appendRow([
+    new Date(),
+    data.sentiment,
+    data.comment || '',
+    data.context || ''
+  ]);
+  return ContentService
+    .createTextOutput(
+      JSON.stringify({status:'ok'})
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+}</pre>
+            <strong style="color:var(--text);">4.</strong> Despliega como <em>Web App</em> → acceso <em>Cualquier usuario</em><br/><br/>
+            <strong style="color:var(--text);">5.</strong> Copia la URL y pégala arriba ↑
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <a class="github-link" href="https://pages.github.com" target="_blank">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12"/></svg>
+    Listo para GitHub Pages
+  </a>
+
+</div>
+
+<script>
+  let selectedFace = null;
+
+  // Load saved config
+  window.addEventListener('load', () => {
+    const saved = localStorage.getItem('feedbackConfig');
+    if (saved) {
+      const cfg = JSON.parse(saved);
+      document.getElementById('scriptUrl').value = cfg.scriptUrl || '';
+      document.getElementById('formName').value = cfg.formName || '';
+    }
+  });
+
+  function selectFace(btn) {
+    document.querySelectorAll('.face-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedFace = btn.dataset.value;
+
+    const area = document.getElementById('commentArea');
+    area.classList.add('visible');
+
+    document.getElementById('submitBtn').disabled = false;
+  }
+
+  function toggleConfig() {
+    const body = document.getElementById('configBody');
+    const arrow = document.getElementById('configArrow');
+    body.classList.toggle('open');
+    arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+  }
+
+  function saveConfig() {
+    const scriptUrl = document.getElementById('scriptUrl').value.trim();
+    const formName = document.getElementById('formName').value.trim();
+    localStorage.setItem('feedbackConfig', JSON.stringify({ scriptUrl, formName }));
+    const s = document.getElementById('configStatus');
+    s.textContent = '✓ Configuración guardada';
+    setTimeout(() => s.textContent = '', 2500);
+  }
+
+  async function submitFeedback() {
+    if (!selectedFace) return;
+
+    const btn = document.getElementById('submitBtn');
+    const statusMsg = document.getElementById('statusMsg');
+    const comment = document.getElementById('commentText').value.trim();
+    const saved = localStorage.getItem('feedbackConfig');
+    const cfg = saved ? JSON.parse(saved) : {};
+    const scriptUrl = cfg.scriptUrl || '';
+    const formName = cfg.formName || '';
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.textContent = 'ENVIANDO...';
+    statusMsg.textContent = '';
+
+    const payload = {
+      sentiment: selectedFace,
+      comment: comment,
+      context: formName,
+    };
+
+    if (scriptUrl) {
+      try {
+        await fetch(scriptUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        showSuccess();
+      } catch (err) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        btn.textContent = 'ENVIAR FEEDBACK';
+        statusMsg.textContent = '⚠️ Error al conectar. Verifica la URL del script.';
+      }
+    } else {
+      // Demo mode - no URL configured
+      await new Promise(r => setTimeout(r, 1200));
+      showSuccess();
+      statusMsg.textContent = '';
+    }
+  }
+
+  const emojiMap = { 'Feliz': '😄', 'Neutral': '😐', 'Molesto': '😤' };
+
+  function showSuccess() {
+    document.getElementById('formState').style.display = 'none';
+    const card = document.getElementById('successCard');
+    card.classList.add('show');
+    document.getElementById('successEmoji').textContent = emojiMap[selectedFace] || '🎉';
+  }
+
+  function resetForm() {
+    selectedFace = null;
+    document.querySelectorAll('.face-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('commentText').value = '';
+    document.getElementById('commentArea').classList.remove('visible');
+    document.getElementById('submitBtn').disabled = true;
+    document.getElementById('submitBtn').textContent = 'ENVIAR FEEDBACK';
+    document.getElementById('submitBtn').classList.remove('loading');
+    document.getElementById('statusMsg').textContent = '';
+    document.getElementById('formState').style.display = 'block';
+    document.getElementById('successCard').classList.remove('show');
+  }
+</script>
+</body>
+</html>
