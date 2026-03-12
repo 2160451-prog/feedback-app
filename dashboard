@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FeedbackFace · Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #080810;
+      --surface: #0f0f1a;
+      --card: #13131f;
+      --border: #1e1e30;
+      --border2: #2a2a40;
+      --happy: #FFD166;
+      --neutral: #06D6A0;
+      --angry: #EF476F;
+      --accent: #818cf8;
+      --text: #e8e8f0;
+      --muted: #6b6b8a;
+      --muted2: #4a4a6a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(129,140,248,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(129,140,248,0.03) 1px, transparent 1px);
+      background-size: 32px 32px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── LOGIN SCREEN ── */
+    #loginScreen {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-box {
+      width: 100%;
+      max-width: 380px;
+      padding: 2.5rem;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 24px;
+      text-align: center;
+    }
+
+    .login-box .logo {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .login-box h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+    }
+
+    .login-box p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+
+    .login-box input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 10px;
+      padding: 0.75rem 1rem;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      margin-bottom: 0.8rem;
+      transition: border-color 0.2s;
+    }
+
+    .login-box input:focus { border-color: var(--accent); }
+
+    .login-btn {
+      width: 100%;
+      padding: 0.8rem;
+      background: var(--accent);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .login-btn:hover { opacity: 0.85; }
+    .login-error { color: var(--angry); font-size: 0.8rem; margin-top: 0.5rem; min-height: 1em; }
+
+    /* ── MAIN LAYOUT ── */
+    #app { display: none; position: relative; z-index: 1; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(8,8,16,0.8);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    .topbar-left .brand {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+    }
+
+    .topbar-left .brand span { color: var(--accent); }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.7rem;
+      color: var(--neutral);
+      border: 1px solid rgba(6,214,160,0.3);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .live-dot {
+      width: 6px; height: 6px;
+      background: var(--neutral);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .refresh-btn {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .refresh-btn:hover { color: var(--text); border-color: var(--accent); }
+
+    .logout-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: color 0.2s;
+    }
+
+    .logout-btn:hover { color: var(--angry); }
+
+    /* ── CONFIG BAR ── */
+    .config-bar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .config-bar label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .config-bar input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 6px 12px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .config-bar input:focus { border-color: var(--accent); }
+
+    .config-save {
+      background: var(--accent);
+      border: none;
+      color: white;
+      padding: 6px 16px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    .config-save:hover { opacity: 0.85; }
+
+    /* ── MAIN CONTENT ── */
+    .main {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s;
+    }
+
+    .stat-card:hover { border-color: var(--border2); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+    }
+
+    .stat-card.total::before { background: var(--accent); }
+    .stat-card.happy::before { background: var(--happy); }
+    .stat-card.neutral::before { background: var(--neutral); }
+    .stat-card.angry::before  { background: var(--angry); }
+
+    .stat-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.2rem;
+      font-weight: 800;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-card.total .stat-value { color: var(--accent); }
+    .stat-card.happy .stat-value  { color: var(--happy); }
+    .stat-card.neutral .stat-value { color: var(--neutral); }
+    .stat-card.angry .stat-value  { color: var(--angry); }
+
+    .stat-pct {
+      font-size: 0.8rem;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Bar chart */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 32px;
+      margin-top: 0.6rem;
+    }
+
+    .bar-segment {
+      border-radius: 3px 3px 0 0;
+      min-width: 4px;
+      transition: height 0.5s ease;
+    }
+
+    /* Content grid */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .content-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Section headers */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Export buttons */
+    .export-btns {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .export-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      border: 1px solid var(--border2);
+      background: var(--card);
+      color: var(--muted);
+    }
+
+    .export-btn:hover { color: var(--text); border-color: var(--accent); }
+    .export-btn.csv:hover { border-color: var(--neutral); color: var(--neutral); }
+    .export-btn.excel:hover { border-color: var(--happy); color: var(--happy); }
+
+    /* Feedback table */
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .feedback-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .feedback-table th {
+      background: var(--surface);
+      padding: 0.7rem 1rem;
+      text-align: left;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      font-family: 'JetBrains Mono', monospace;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .feedback-table td {
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .feedback-table tr:last-child td { border-bottom: none; }
+
+    .feedback-table tr {
+      transition: background 0.15s;
+    }
+
+    .feedback-table tr:hover td { background: rgba(129,140,248,0.04); }
+
+    .feedback-table tr.new-row td {
+      animation: rowFlash 1.5s ease forwards;
+    }
+
+    @keyframes rowFlash {
+      0% { background: rgba(129,140,248,0.15); }
+      100% { background: transparent; }
+    }
+
+    .sentiment-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .sentiment-badge.Feliz   { background: rgba(255,209,102,0.12); color: var(--happy); border: 1px solid rgba(255,209,102,0.25); }
+    .sentiment-badge.Neutral { background: rgba(6,214,160,0.12); color: var(--neutral); border: 1px solid rgba(6,214,160,0.25); }
+    .sentiment-badge.Molesto { background: rgba(239,71,111,0.12); color: var(--angry); border: 1px solid rgba(239,71,111,0.25); }
+
+    .date-cell {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    .comment-cell {
+      color: var(--muted);
+      max-width: 260px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+    }
+
+    .empty-state .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    .empty-state p { font-size: 0.85rem; }
+
+    /* Sidebar */
+    .sidebar { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    /* Donut chart */
+    .donut-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem;
+    }
+
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 1.2rem 0;
+    }
+
+    .donut-svg { transform: rotate(-90deg); }
+
+    .donut-center {
+      position: absolute;
+      text-align: center;
+    }
+
+    .donut-center .num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .donut-center .lbl {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .donut-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 140px;
+      height: 140px;
+    }
+
+    .legend {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8rem;
+    }
+
+    .legend-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+    }
+
+    .legend-pct {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    /* Recent activity */
+    .activity-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem;
+      flex: 1;
+    }
+
+    .activity-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .activity-feed::-webkit-scrollbar { width: 4px; }
+    .activity-feed::-webkit-scrollbar-track { background: transparent; }
+    .activity-feed::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .activity-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      padding: 0.6rem;
+      border-radius: 8px;
+      transition: background 0.2s;
+      animation: slideIn 0.4s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-10px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .activity-item:hover { background: rgba(255,255,255,0.03); }
+
+    .activity-emoji { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+
+    .activity-content { flex: 1; min-width: 0; }
+
+    .activity-sentiment {
+      font-size: 0.75rem;
+      font-weight: 500;
+      margin-bottom: 0.1rem;
+    }
+
+    .activity-comment {
+      font-size: 0.72rem;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .activity-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted2);
+      flex-shrink: 0;
+    }
+
+    /* Loading */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8,8,16,0.7);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .loading-overlay.show { display: flex; }
+
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--border2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .last-updated {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--muted2);
+    }
+
+    /* Filter bar */
+    .filter-bar {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      border: 1px solid var(--border2);
+      background: var(--card);
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover, .filter-btn.active { color: var(--text); border-color: var(--accent); background: rgba(129,140,248,0.1); }
+    .filter-btn.f-happy.active  { border-color: var(--happy); background: rgba(255,209,102,0.1); color: var(--happy); }
+    .filter-btn.f-neutral.active { border-color: var(--neutral); background: rgba(6,214,160,0.1); color: var(--neutral); }
+    .filter-btn.f-angry.active  { border-color: var(--angry); background: rgba(239,71,111,0.1); color: var(--angry); }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="logo">📊</div>
+    <h2>Panel de Administración</h2>
+    <p>Ingresa tu clave para ver los feedbacks</p>
+    <input type="password" id="loginPass" placeholder="Contraseña" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">ENTRAR</button>
+    <div class="login-error" id="loginError"></div>
+    <p style="margin-top:1.2rem;font-size:0.72rem;color:var(--muted);">Clave por defecto: <code style="color:var(--accent)">admin123</code></p>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="brand">Feedback<span>Face</span></div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        LIVE
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="last-updated" id="lastUpdated">—</span>
+      <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
+      <button class="logout-btn" onclick="doLogout()">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- Config bar -->
+  <div class="config-bar">
+    <label>Script URL:</label>
+    <input type="text" id="dashScriptUrl" placeholder="https://script.google.com/macros/s/..."/>
+    <button class="config-save" onclick="saveAndLoad()">Guardar y cargar</button>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-label">📥 Total feedbacks</div>
+        <div class="stat-value" id="statTotal">0</div>
+        <div class="stat-pct" id="statPeriod">Sin datos aún</div>
+      </div>
+      <div class="stat-card happy">
+        <div class="stat-label">😄 Feliz</div>
+        <div class="stat-value" id="statHappy">0</div>
+        <div class="stat-pct" id="pctHappy">— %</div>
+      </div>
+      <div class="stat-card neutral">
+        <div class="stat-label">😐 Regular</div>
+        <div class="stat-value" id="statNeutral">0</div>
+        <div class="stat-pct" id="pctNeutral">— %</div>
+      </div>
+      <div class="stat-card angry">
+        <div class="stat-label">😤 Molesto</div>
+        <div class="stat-value" id="statAngry">0</div>
+        <div class="stat-pct" id="pctAngry">— %</div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content-grid">
+
+      <!-- Table -->
+      <div>
+        <div class="section-header">
+          <div class="section-title">📋 Todos los feedbacks</div>
+          <div class="export-btns">
+            <button class="export-btn csv" onclick="exportCSV()">⬇ CSV</button>
+            <button class="export-btn excel" onclick="exportExcel()">⬇ Excel</button>
+          </div>
+        </div>
+
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all" onclick="setFilter('all',this)">Todos</button>
+          <button class="filter-btn f-happy" data-filter="Feliz" onclick="setFilter('Feliz',this)">😄 Feliz</button>
+          <button class="filter-btn f-neutral" data-filter="Neutral" onclick="setFilter('Neutral',this)">😐 Regular</button>
+          <button class="filter-btn f-angry" data-filter="Molesto" onclick="setFilter('Molesto',this)">😤 Molesto</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="feedback-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Sentimiento</th>
+                <th>Comentario</th>
+                <th>Contexto</th>
+              </tr>
+            </thead>
+            <tbody id="feedbackTableBody">
+              <tr><td colspan="5"><div class="empty-state"><div class="big">📭</div><p>Configura el Script URL arriba para cargar datos</p></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+
+        <!-- Donut -->
+        <div class="donut-card">
+          <div class="section-title" style="margin-bottom:0.2rem;">🥧 Distribución</div>
+          <div class="donut-wrap">
+            <div class="donut-container">
+              <svg class="donut-svg" width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="54" fill="none" stroke="#1e1e30" stroke-width="18"/>
+                <circle id="donutHappy" cx="70" cy="70" r="54" fill="none" stroke="#FFD166" stroke-width="18" stroke-dasharray="0 339.3" stroke-linecap="round"/>
+                <circle id="donutNeutral" cx="70" cy="70" r="54" fill="none" stroke="#06D6A0" stroke-width="18" stroke-dasharray="0 339.3" stroke-linecap="round"/>
+                <circle id="donutAngry" cx="70" cy="70" r="54" fill="none" stroke="#EF476F" stroke-width="18" stroke-dasharray="0 339.3" stroke-linecap="round"/>
+              </svg>
+              <div class="donut-center">
+                <div class="num" id="donutTotal">0</div>
+                <div class="lbl">total</div>
+              </div>
+            </div>
+          </div>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-left"><div class="legend-dot" style="background:var(--happy)"></div><span>Feliz</span></div>
+              <span class="legend-pct" id="legendHappy">0%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-left"><div class="legend-dot" style="background:var(--neutral)"></div><span>Regular</span></div>
+              <span class="legend-pct" id="legendNeutral">0%</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-left"><div class="legend-dot" style="background:var(--angry)"></div><span>Molesto</span></div>
+              <span class="legend-pct" id="legendAngry">0%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="activity-card">
+          <div class="section-title" style="margin-bottom:1rem;">⚡ Actividad reciente</div>
+          <div class="activity-feed" id="activityFeed">
+            <div style="text-align:center;color:var(--muted);font-size:0.8rem;padding:1rem;">Sin actividad aún</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──
+  const ADMIN_PASSWORD = 'admin123'; // Cambia esto
+  const CIRCUM = 2 * Math.PI * 54; // donut circumference
+
+  let allData = [];
+  let currentFilter = 'all';
+  let autoRefreshInterval = null;
+
+  const emojiMap = { 'Feliz': '😄', 'Neutral': '😐', 'Molesto': '😤' };
+
+  // ── AUTH ──
+  function doLogin() {
+    const pass = document.getElementById('loginPass').value;
+    if (pass === ADMIN_PASSWORD) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadConfig();
+      startAutoRefresh();
+    } else {
+      document.getElementById('loginError').textContent = '⚠️ Contraseña incorrecta';
+      setTimeout(() => document.getElementById('loginError').textContent = '', 2000);
+    }
+  }
+
+  function doLogout() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    clearInterval(autoRefreshInterval);
+  }
+
+  // ── CONFIG ──
+  function loadConfig() {
+    const saved = localStorage.getItem('feedbackConfig');
+    if (saved) {
+      const cfg = JSON.parse(saved);
+      const url = cfg.scriptUrl || '';
+      document.getElementById('dashScriptUrl').value = url;
+      if (url) loadData();
+    }
+  }
+
+  function saveAndLoad() {
+    const url = document.getElementById('dashScriptUrl').value.trim();
+    const saved = localStorage.getItem('feedbackConfig');
+    const cfg = saved ? JSON.parse(saved) : {};
+    cfg.scriptUrl = url;
+    localStorage.setItem('feedbackConfig', JSON.stringify(cfg));
+    loadData();
+  }
+
+  // ── DATA ──
+  async function loadData() {
+    const url = document.getElementById('dashScriptUrl').value.trim();
+    if (!url) return;
+
+    // Convert exec URL to doGet URL for reading
+    const getUrl = url.replace('/exec', '/exec') + '?action=get';
+
+    document.getElementById('loadingOverlay').classList.add('show');
+
+    try {
+      const res = await fetch(getUrl);
+      const text = await res.text();
+
+      let rows = [];
+      try {
+        const json = JSON.parse(text);
+        if (json.data) rows = json.data;
+      } catch {
+        // Parse as CSV fallback
+        rows = parseCSVText(text);
+      }
+
+      allData = rows;
+      renderAll();
+      document.getElementById('lastUpdated').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es');
+    } catch(err) {
+      // Use demo data if can't connect
+      console.log('Using demo data');
+    } finally {
+      document.getElementById('loadingOverlay').classList.remove('show');
+    }
+  }
+
+  function startAutoRefresh() {
+    autoRefreshInterval = setInterval(() => {
+      const url = document.getElementById('dashScriptUrl').value.trim();
+      if (url) loadData();
+    }, 30000); // every 30 seconds
+  }
+
+  // ── RENDER ──
+  function renderAll() {
+    const filtered = currentFilter === 'all'
+      ? allData
+      : allData.filter(r => r[1] === currentFilter);
+
+    renderStats();
+    renderTable(filtered);
+    renderDonut();
+    renderActivity();
+  }
+
+  function renderStats() {
+    const total = allData.length;
+    const happy   = allData.filter(r => r[1] === 'Feliz').length;
+    const neutral = allData.filter(r => r[1] === 'Neutral').length;
+    const angry   = allData.filter(r => r[1] === 'Molesto').length;
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statHappy').textContent = happy;
+    document.getElementById('statNeutral').textContent = neutral;
+    document.getElementById('statAngry').textContent = angry;
+
+    const pct = (n) => total > 0 ? Math.round(n/total*100) + '%' : '—%';
+    document.getElementById('pctHappy').textContent = pct(happy);
+    document.getElementById('pctNeutral').textContent = pct(neutral);
+    document.getElementById('pctAngry').textContent = pct(angry);
+    document.getElementById('statPeriod').textContent = total > 0 ? `${total} respuestas registradas` : 'Sin datos aún';
+  }
+
+  function renderTable(rows) {
+    const tbody = document.getElementById('feedbackTableBody');
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="big">📭</div><p>No hay feedbacks${currentFilter !== 'all' ? ' con este filtro' : ' aún'}</p></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = [...rows].reverse().map((row, i) => {
+      const date = row[0] ? new Date(row[0]).toLocaleString('es', {dateStyle:'short', timeStyle:'short'}) : '—';
+      const sentiment = row[1] || '—';
+      const comment = row[2] || '';
+      const context = row[3] || '';
+      const isNew = i < 3 ? 'new-row' : '';
+
+      return `<tr class="${isNew}">
+        <td><span style="color:var(--muted2);font-family:'JetBrains Mono',monospace;font-size:0.72rem">${rows.length - i}</span></td>
+        <td class="date-cell">${date}</td>
+        <td><span class="sentiment-badge ${sentiment}">${emojiMap[sentiment] || '•'} ${sentiment}</span></td>
+        <td class="comment-cell">${comment || '<span style="color:var(--muted2)">Sin comentario</span>'}</td>
+        <td class="date-cell">${context || '—'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderDonut() {
+    const total = allData.length;
+    const happy   = allData.filter(r => r[1] === 'Feliz').length;
+    const neutral = allData.filter(r => r[1] === 'Neutral').length;
+    const angry   = allData.filter(r => r[1] === 'Molesto').length;
+
+    document.getElementById('donutTotal').textContent = total;
+
+    if (total === 0) return;
+
+    const pctH = happy / total;
+    const pctN = neutral / total;
+    const pctA = angry / total;
+
+    const dashH = CIRCUM * pctH;
+    const dashN = CIRCUM * pctN;
+    const dashA = CIRCUM * pctA;
+
+    const offH = 0;
+    const offN = -(CIRCUM * pctH);
+    const offA = -(CIRCUM * (pctH + pctN));
+
+    document.getElementById('donutHappy').setAttribute('stroke-dasharray', `${dashH} ${CIRCUM}`);
+    document.getElementById('donutHappy').setAttribute('stroke-dashoffset', offH);
+    document.getElementById('donutNeutral').setAttribute('stroke-dasharray', `${dashN} ${CIRCUM}`);
+    document.getElementById('donutNeutral').setAttribute('stroke-dashoffset', offN);
+    document.getElementById('donutAngry').setAttribute('stroke-dasharray', `${dashA} ${CIRCUM}`);
+    document.getElementById('donutAngry').setAttribute('stroke-dashoffset', offA);
+
+    const pct = (n) => Math.round(n/total*100) + '%';
+    document.getElementById('legendHappy').textContent = pct(happy);
+    document.getElementById('legendNeutral').textContent = pct(neutral);
+    document.getElementById('legendAngry').textContent = pct(angry);
+  }
+
+  function renderActivity() {
+    const feed = document.getElementById('activityFeed');
+    const recent = [...allData].reverse().slice(0, 10);
+
+    if (recent.length === 0) {
+      feed.innerHTML = '<div style="text-align:center;color:var(--muted);font-size:0.8rem;padding:1rem;">Sin actividad aún</div>';
+      return;
+    }
+
+    feed.innerHTML = recent.map(row => {
+      const sentiment = row[1] || '—';
+      const comment = row[2] || '';
+      const date = row[0] ? new Date(row[0]).toLocaleTimeString('es', {timeStyle:'short'}) : '';
+      const colorMap = { 'Feliz': 'var(--happy)', 'Neutral': 'var(--neutral)', 'Molesto': 'var(--angry)' };
+
+      return `<div class="activity-item">
+        <div class="activity-emoji">${emojiMap[sentiment] || '•'}</div>
+        <div class="activity-content">
+          <div class="activity-sentiment" style="color:${colorMap[sentiment] || 'var(--text)'}">${sentiment}</div>
+          <div class="activity-comment">${comment || 'Sin comentario'}</div>
+        </div>
+        <div class="activity-time">${date}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── FILTER ──
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderAll();
+  }
+
+  // ── EXPORT ──
+  function exportCSV() {
+    if (allData.length === 0) { alert('No hay datos para exportar'); return; }
+
+    const headers = ['Fecha', 'Sentimiento', 'Comentario', 'Contexto'];
+    const rows = allData.map(r => [
+      r[0] ? new Date(r[0]).toLocaleString('es') : '',
+      r[1] || '',
+      (r[2] || '').replace(/,/g, ';'),
+      r[3] || ''
+    ]);
+
+    const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+    downloadFile(blob, `feedbacks_${dateStamp()}.csv`);
+  }
+
+  function exportExcel() {
+    if (allData.length === 0) { alert('No hay datos para exportar'); return; }
+
+    const headers = ['Fecha', 'Sentimiento', 'Comentario', 'Contexto'];
+    const rows = allData.map(r => [
+      r[0] ? new Date(r[0]).toLocaleString('es') : '',
+      r[1] || '',
+      r[2] || '',
+      r[3] || ''
+    ]);
+
+    // Build HTML table for Excel
+    const table = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+    <head><meta charset="UTF-8"/></head>
+    <body><table>
+      <tr>${headers.map(h => `<th style="background:#818cf8;color:white;font-weight:bold">${h}</th>`).join('')}</tr>
+      ${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('')}
+    </table></body></html>`;
+
+    const blob = new Blob([table], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    downloadFile(blob, `feedbacks_${dateStamp()}.xls`);
+  }
+
+  function downloadFile(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function dateStamp() {
+    return new Date().toISOString().slice(0,10);
+  }
+
+  // ── DEMO DATA (for testing without real API) ──
+  function loadDemoData() {
+    const sentiments = ['Feliz', 'Feliz', 'Feliz', 'Neutral', 'Molesto', 'Feliz', 'Neutral'];
+    const comments = ['Excelente servicio!', 'Todo bien', '', 'Podría mejorar', 'Tardaron mucho', 'Muy buena atención', ''];
+    const now = Date.now();
+
+    allData = Array.from({length: 18}, (_, i) => [
+      new Date(now - i * 3600000 * Math.random() * 5).toISOString(),
+      sentiments[i % sentiments.length],
+      comments[i % comments.length],
+      'Demo'
+    ]);
+
+    renderAll();
+    document.getElementById('lastUpdated').textContent = 'Demo · ' + new Date().toLocaleTimeString('es');
+  }
+
+  // ── INIT ──
+  window.addEventListener('load', () => {
+    // Load demo data initially so dashboard looks alive
+    loadDemoData();
+  });
+</script>
+</body>
+</html>
